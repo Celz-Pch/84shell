@@ -6,6 +6,7 @@ section .data
 
 section .bss
     buf resb 128
+    
 section .text
     global _start
     _start:
