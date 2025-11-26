@@ -8,8 +8,8 @@ section .data
     not_found db "Command not found.", 10
     len_notfound equ $-not_found
 
-    exit db 10, "exit", 10
-    len_exit equ $-exit
+    exit_text db 10, "exit", 10
+    len_exit equ $-exit_text
 
 section .bss
     buf resb 128
@@ -19,7 +19,8 @@ section .bss
 section .text
     global _start
 _start:
-    call _clear_buffer
+    call stop_sig
+    call clear_buffer
 
     mov rax, 1
     mov rdi, 1
@@ -34,7 +35,7 @@ _start:
     syscall
 
     cmp rax, 0
-    jle _exit
+    jle exit
 
     cmp [buf], 10
     je _start
@@ -54,19 +55,19 @@ _start:
 
 copy_loop:
     cmp rcx, 0
-    je  _done_exec
+    je  done_exec
     mov dl, [rdi]
     cmp dl, ' '
-    je _done_exec
+    je done_exec
     cmp dl, 10
-    je _done_exec
+    je done_exec
     mov [rbx], dl
     inc rbx
     inc rdi
     dec rcx
     jmp copy_loop
 
-_done_exec:
+done_exec:
     mov byte [rbx], 0
     lea rax, [rel cmd_path]
     mov [rel argv], rax
@@ -76,8 +77,8 @@ _done_exec:
     syscall
 
     cmp rax, 0
-    je _exec
-    jl _fork_error
+    je exec
+    jl fork_error
 
     mov rdi, rax
     xor rsi, rsi
@@ -88,7 +89,7 @@ _done_exec:
 
     jmp _start
 
-_exec:
+exec:
     mov rax, 59
     lea rdi, [rel cmd_path]
     lea rsi, [rel argv]
@@ -105,10 +106,10 @@ _exec:
     mov rdi, 1
     syscall
 
-_exit:
+exit:
     mov rax, 1
     mov rdi, 1
-    lea rsi, [rel exit]
+    lea rsi, [rel exit_text]
     mov rdx, len_exit
     syscall
 
@@ -116,12 +117,12 @@ _exit:
     mov rdi, 0
     syscall
 
-_fork_error:
+fork_error:
     mov rax, 60
     mov rdi, 1
     syscall
 
-_clear_buffer:
+clear_buffer:
     push rdi
     push rcx
     push rax
@@ -134,4 +135,8 @@ _clear_buffer:
     pop rax
     pop rcx
     pop rdi
+    ret
+
+stop_sig:
+    
     ret
