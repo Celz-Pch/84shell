@@ -1,4 +1,5 @@
 bits 64
+DEFAULT REL
 
 section .data
     msg db "sh-1.0$ "
@@ -18,20 +19,25 @@ section .bss
 section .text
     global _start
 _start:
+    call _clear_buffer
+
     mov rax, 1
     mov rdi, 1
     lea  rsi, [rel msg]
     mov rdx, len
     syscall
 
-    mov rax, 0
-    mov rdi, 0
+    xor rax, rax
+    xor rdi, rdi
     lea rsi, [rel buf]
     mov rdx, 128
     syscall
 
     cmp rax, 0
-    je _exit
+    jle _exit
+
+    cmp [buf], 10
+    je _start
 
     mov rcx, rax
     mov rbx, cmd_path
@@ -88,7 +94,7 @@ _exec:
     lea rsi, [rel argv]
     xor rdx, rdx
     syscall
-    
+
     mov rax, 1
     mov rdi, 1
     lea rsi, [rel not_found]
@@ -111,6 +117,21 @@ _exit:
     syscall
 
 _fork_error:
-    mov     rax, 60
-    mov     rdi, 1
+    mov rax, 60
+    mov rdi, 1
     syscall
+
+_clear_buffer:
+    push rdi
+    push rcx
+    push rax
+
+    lea rdi, [rel buf]
+    xor eax, eax
+    mov ecx, 128 / 4
+    rep stosd
+
+    pop rax
+    pop rcx
+    pop rdi
+    ret
