@@ -23,4 +23,6 @@ void stop_sigint(void) {
     sa.sa_flags = 0;
     if (sigaction(SIGINT, &sa, NULL) == -1)
         perror("sigaction");
+    if (sigaction(SIGTSTP, &sa, NULL) == -1)
+        perror("sigaction");
 }
