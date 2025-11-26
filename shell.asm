@@ -1,5 +1,7 @@
 bits 64
 DEFAULT REL
+extern stop_sigint
+global shell
 
 section .data
     msg db "sh-1.0$ "
@@ -19,7 +21,11 @@ section .bss
 section .text
     global _start
 _start:
-    call stop_sig
+    and rsp, -16
+    call shell
+
+shell:
+    call stop_sigint
     call clear_buffer
 
     mov rax, 1
@@ -35,10 +41,11 @@ _start:
     syscall
 
     cmp rax, 0
-    jle exit
+    jl  shell
+    je exit
 
     cmp [buf], 10
-    je _start
+    je shell
 
     mov rcx, rax
     mov rbx, cmd_path
@@ -87,7 +94,7 @@ done_exec:
     mov rax, 61
     syscall
 
-    jmp _start
+    jmp shell
 
 exec:
     mov rax, 59
@@ -135,8 +142,4 @@ clear_buffer:
     pop rax
     pop rcx
     pop rdi
-    ret
-
-stop_sig:
-    
     ret

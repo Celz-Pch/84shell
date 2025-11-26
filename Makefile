@@ -6,6 +6,7 @@
 ##
 
 ASM = nasm
+CC = clang
 
 NASMFLAGS = -f elf64 -o 84shell.o
 
@@ -15,10 +16,10 @@ NAME = 84shell
 
 all: $(NAME)
 
-$(NAME): $(SRC)
+$(NAME): $(SRC) keyboard.c
 	$(ASM) $(NASMFLAGS) $(SRC)
-	ld -o $(NAME) 84shell.o
-	
+	$(CC) -c keyboard.c -o keyboard.o
+	$(CC) keyboard.o 84shell.o -o $(NAME) -no-pie -nostartfiles
 
 clean:
 	rm -f *.o
