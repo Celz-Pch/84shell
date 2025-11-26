@@ -7,6 +7,9 @@ section .data
     not_found db "Command not found.", 10
     len_notfound equ $-not_found
 
+    exit db 10, "exit", 10
+    len_exit equ $-exit
+
 section .bss
     buf resb 128
     cmd_path resb 256
@@ -97,6 +100,12 @@ _exec:
     syscall
 
 _exit:
+    mov rax, 1
+    mov rdi, 1
+    lea rsi, [rel exit]
+    mov rdx, len_exit
+    syscall
+
     mov rax, 60
     mov rdi, 0
     syscall
